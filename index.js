@@ -87,7 +87,7 @@ function handleMessage(sender_psid, received_message) {
   if (received_message.text) {
     // Creates the payload for a basic text messages
     response = {
-      "text": 'You sent the message: "${received_message.text}". Now send me an image!'
+      "text": `You sent the message: "${received_message.text}". Now send me an image!`
     }
   }
   // Sends the response message
@@ -104,7 +104,7 @@ function callSendAPI(sender_psid, response) {
   // Constructs the message body
   let request_body = {
     "recipient": {
-      "id": sender_psid 
+      "id": sender_psid
     },
     "message": response
   }
