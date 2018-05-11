@@ -38,7 +38,7 @@ if (body.object === 'page') {
 });
 
 app.get("/", function (req, res) {
-  res.send("Deployed!");
+  res.send("292964507");
 });
 
 // Adds support for GET requests to our webhook
