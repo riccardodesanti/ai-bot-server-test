@@ -1,6 +1,7 @@
 'use strict';
 
 // Imports dependencies and set up http server
+const request = require('request');
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 const
   express = require('express'),
@@ -29,6 +30,13 @@ if (body.object === 'page') {
     //Get the sender PSID
     let sender_psid = webhook_event.sender.id;
     console.log('Sender PSID: ' + sender_psid);
+
+    // Check if the event is a message or postback and pass the event to the appropriate handler function
+    if (webhook_event.message) {
+      handleMessage(sender_psid, webhook_event.message);
+    } else if (webhook_event.postback) {
+      handlePostback(sender_psid, webhook_event.postback);
+    }
   });
 
   // Returns a '200 OK' response to all requests
@@ -37,7 +45,6 @@ if (body.object === 'page') {
   // Returns a '404 Not Found' if event is not from a page subscription
   res.sendStatus(404);
 }
-
 });
 
 app.get("/", function (req, res) {
@@ -74,7 +81,17 @@ app.get('/webhook', (req, res) => {
 
 // Handles messages events
 function handleMessage(sender_psid, received_message) {
+  let response;
 
+  // Checks if the message contains text
+  if (received_message.text) {
+    // Creates the payload for a basic text messages
+    response = {
+      "text": 'You sent the message: "${received_message.text}". Now send me an image!'
+    }
+  }
+  // Sends the response message
+  callSendAPI(sender_psid, response);
 }
 
 // Handles messaging_postbacks events
@@ -84,5 +101,25 @@ function handlePostback(sender_psid, received_postback) {
 
 // Sends response messages via the Send API
 function callSendAPI(sender_psid, response) {
+  // Constructs the message body
+  let request_body = {
+    "recipient": {
+      "id": sender_psid 
+    },
+    "message": response
+  }
 
+  //Sends the HTTP request to the Messenger Platform
+  request({
+    "uri": "https://graph.facebook.com/v2.6/me/messages",
+    "qs": { "access_token": "EAABxv5Jefd8BALq63xbyHJi0H99JQ8PSKgGO1mOF85r1uB6jvwS79gKvUf4QqAhu9ptl1nKv93uqZArbARdqMHZCqq5eZBb6zIyPerNBVprFZBBJAnyUcm3jnA0oTE6KIFRqBKxeAsbNqU12xb9eFr9XpLZARZBP3dwRHjsAjCZBAZDZD"},
+    "method": "POST",
+    "json": request_body
+  }, (err, res, body) => {
+    if (!err) {
+      console.log('message sent!');
+    } else {
+      console.error("Unable to send message:" + err);
+    }
+  });
 }
